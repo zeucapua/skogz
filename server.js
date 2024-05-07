@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import express from 'express'
-import { SvelteComponent } from 'svelte'
+import { render } from 'svelte/server'
 
 // Constants
 const isProduction = process.env.NODE_ENV === 'production'
@@ -54,10 +54,10 @@ app.use('*', async (req, res) => {
       routes = (await import('./dist/server/skogz.ts')).routes;
     }
     
-    let render = Object.keys(routes).find((route) => route === `/${url}`)
-      ? routes[`/${url}`].page_component.render
-      : routes.error.page_component.render
-    const rendered = await render(url, ssrManifest)
+    let component = Object.keys(routes).find((route) => route === `/${url}`)
+      ? routes[`/${url}`].page_component
+      : routes.error.page_component
+    const rendered = render(component, {});
 
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')

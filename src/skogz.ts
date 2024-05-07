@@ -2,6 +2,7 @@ import Root from "./root.svelte";
 import Pong from "./pong.svelte";
 import Error from "./error.svelte";
 import type { SvelteComponent } from "svelte";
+import { hydrate } from "svelte";
 
 // Define routes and the page component it should render
 // Keys are routes, checked with the middleware in `./server.js`
@@ -21,7 +22,6 @@ export const routes : Record<string, { page_component: SvelteComponent }> = {
 } as const;
 
 
-
 // Hydration: runs on `<script type="module">` in HTML
 // If checks if on client, NOT server, since this file is imported on
 // both client and server side
@@ -37,7 +37,7 @@ if (typeof window !== "undefined") {
 
   // Hydrate the correct component
   // @ts-ignore
-  new Page({
+  const app = hydrate(Page, {
     // @ts-ignore
     target: document.getElementById('app'),
     hydrate: true
