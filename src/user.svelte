@@ -1,5 +1,9 @@
 <script lang="ts">
-  export let name : string | undefined;
+  interface UserPageProps {
+    name: string 
+  }
+
+  let { name }: UserPageProps = $props();
 </script>
 
 <p>Hello {name}</p>

@@ -38,31 +38,44 @@ if (!isProduction) {
 // Serve HTML
 app.use('*', async (req, res) => {
   try {
-    const url = req.originalUrl.replace(base, '')
+    const url = req.originalUrl.replace(base, '');
+    console.log(url, req.baseUrl, req.url);
 
-    let error;
     let routes;
     let template;
     if (!isProduction) {
       // Always read fresh template in development
       template = await fs.readFile('./index.html', 'utf-8')
       template = await vite.transformIndexHtml(url, template)
+
+      // Get the predetermined routes 
       routes = (await vite.ssrLoadModule('/src/skogz.ts')).routes;
-      error = (await vite.ssrLoadModule('/src/skogz.ts')).error;
     } else {
       template = templateHtml
+
+      // Get the predetermined routes, via built files ('./dist')
       routes = (await import('./dist/server/skogz.ts')).routes;
     }
-    
-    let component = Object.keys(routes).find((route) => route === `/${url}`)
-      ? routes[`/${url}`].page_component
-      : routes.error.page_component
-    const rendered = render(component, {});
 
+
+    // get the correct component from the set routes object 
+    // if given URL is a key in the routes Object
+    // else get the error component 
+    let component = Object.keys(routes).find((route) => route === req.baseUrl)
+      ? routes[req.baseUrl].page_component
+      : routes.error.page_component
+
+    // render the component
+    const rendered = render(component, {
+      props: req.query
+    });
+
+    // replace parts of the document with rendered <head> and elements
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')
       .replace(`<!--app-html-->`, rendered.html ?? '')
 
+    // return the non-hydrated document back to the client
     res.status(200).set({ 'Content-Type': 'text/html' }).send(html)
   } catch (e) {
     vite?.ssrFixStacktrace(e)
