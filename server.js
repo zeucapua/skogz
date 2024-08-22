@@ -65,18 +65,26 @@ app.use('*', async (req, res) => {
       ? routes[req.baseUrl].page_component
       : routes.error.page_component
 
+    let loaderFn = Object.keys(routes).find((route) => route === req.baseUrl) &&
+      routes[req.baseUrl].loader;
+
+    let result = await loaderFn();
+    console.log({ result });
+
     // render the component
     const rendered = render(component, {
-      props: req.query
+      props: { queryParams: req.query, ...result }
     });
 
     // replace parts of the document with rendered <head> and elements
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')
-      .replace(`<!--app-html-->`, rendered.html ?? '')
+      .replace(`<!--app-html-->`, rendered.body ?? '')
+      .replace(`<!--skogz-loader-result-->`, `<script>window.__skogzLoaderResult = ${JSON.stringify(result)}</script>`);
+
 
     // return the non-hydrated document back to the client
-    res.status(200).set({ 'Content-Type': 'text/html' }).send(html)
+    res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
   } catch (e) {
     vite?.ssrFixStacktrace(e)
     console.log(e.stack)
