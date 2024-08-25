@@ -59,8 +59,9 @@ if (typeof window !== "undefined") {
     Page = routes.error.page_component
   }
 
+  // @ts-ignore
   let result = window.__skogzLoaderResult!;
-  console.log({ result });
+  console.log({ Page, result });
 
   // Hydrate the correct component
   // @ts-ignore

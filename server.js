@@ -39,7 +39,7 @@ if (!isProduction) {
 app.use('*', async (req, res) => {
   try {
     const url = req.originalUrl.replace(base, '');
-    console.log(url, req.baseUrl, req.url);
+    const path = req.baseUrl.trim().length === 0 ? '/' : req.baseUrl;
 
     let routes;
     let template;
@@ -61,12 +61,14 @@ app.use('*', async (req, res) => {
     // get the correct component from the set routes object 
     // if given URL is a key in the routes Object
     // else get the error component 
-    let component = Object.keys(routes).find((route) => route === req.baseUrl)
-      ? routes[req.baseUrl].page_component
+    let component = Object.keys(routes).find((route) => route === path)
+      ? routes[path].page_component
       : routes.error.page_component
 
-    let loaderFn = Object.keys(routes).find((route) => route === req.baseUrl) &&
-      routes[req.baseUrl].loader;
+    let errorLog = () => console.log("NOPE");
+
+    let loaderFn = Object.keys(routes).find((route) => route === path) ?
+      (routes[path].loaderFn || errorLog) : errorLog;
 
     let result = await loaderFn();
     console.log({ result });
