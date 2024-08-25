@@ -71,7 +71,7 @@ if (typeof window !== "undefined") {
     hydrate: true,
     props: {
       queryParams: query,
-      ...result
+      ...(result || {})
     }
   })
 }
